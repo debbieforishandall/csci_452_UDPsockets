@@ -31,12 +31,14 @@ int main(int argc, char *argv[]) {
     struct		hostent	*server;		/*  holds remote IP address   */
     char		user_entry[10];			/*  for user entered command  */
 	ssize_t		n;						/*  for reading from buffer   */
+	ssize_t		rv;						/*	holds size returned by recvfrom() */
     char		c;						/*  for reading from buffer   */
 	int 		i, s;					/*  for reading from buffer   */
 	FILE 		*fp;					/*	for file writing		  */
 	void 		*ptr;					/*	for file writing		  */
 	size_t		received;				/*	size of file received	*/	
-	int			slen;
+	int			slen;					/* 	stores size of servaddr 	*/
+	ssize_t		buf_used;				/*	amount of data received from buffer */
 
 
     /*  Get command line arguments  */
@@ -50,8 +52,8 @@ int main(int argc, char *argv[]) {
     }
 
     //get the remort port number and server address from command line arguments
-    portno = atoi(argv[2]);
-    server = gethostbyname(argv[1]);
+    portno = atoi(argv[1]);
+    server = gethostbyname(argv[2]);
     serverPort = atoi(argv[3]);
 
      if (server == NULL) {
@@ -108,11 +110,22 @@ int main(int argc, char *argv[]) {
 		    sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 			//Read first line from server
 			memset(buffer, 0, sizeof(buffer));
-		     //try to receive some data, this is a blocking call
-		    if (recvfrom(s, buffer, sizeof(buffer), 0, (struct sockaddr *) &servaddr, &slen) == -1)
-		    {
-		        exit(EXIT_FAILURE);
+		    //try to receive some data
+			//TO DO: set flags to MSG_DONTWAIT
+		    rv = recvfrom(conn_s, buffer, sizeof(buffer), 0, (struct sockaddr *)&servaddr, &slen)
+			if (rv == 0) {
+				fprintf(stderr, "Connection closed.\n");
+				abort();
+			}
+		    if (rv < 0 && errno == EAGAIN) {
+			    /* no data for now, call back when the socket is readable */
+			    return;
 		    }
+		    if (rv < 0) {
+			    perror("Connection error");
+			    abort();
+		    }
+			buf_used += rv;
 	        // Output echoed string
 			printf("String Size: %s\n", buffer); 
 	        printf("Server response: %s\n", msg);
