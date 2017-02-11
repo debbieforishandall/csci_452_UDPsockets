@@ -112,7 +112,7 @@ int main(int argc, char *argv[]) {
 			memset(buffer, 0, sizeof(buffer));
 		    //try to receive some data
 			//TO DO: set flags to MSG_DONTWAIT
-		    rv = recvfrom(conn_s, buffer, sizeof(buffer), 0, (struct sockaddr *)&servaddr, &slen)
+		    rv = recvfrom(conn_s, buffer, sizeof(buffer), 0, (struct sockaddr *)&servaddr, &slen);
 			if (rv == 0) {
 				fprintf(stderr, "Connection closed.\n");
 				abort();
@@ -127,8 +127,7 @@ int main(int argc, char *argv[]) {
 		    }
 			buf_used += rv;
 	        // Output echoed string
-			printf("String Size: %s\n", buffer); 
-	        printf("Server response: %s\n", msg);
+			printf("Server Response: %s\n", buffer);
 			fflush(stdin);
 		} 
 		else if(!(strcmp(user_entry, "t")) || !(strcmp(user_entry, "t\n")))
