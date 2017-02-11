@@ -27,15 +27,16 @@ int main(int argc, char *argv[]) {
     short int port;                  /*  port number               */
     struct    sockaddr_in servaddr;  /*  socket address structure  */
     char      buffer[MAX_LINE];      /*  character buffer          */
-	char 	  msg[MAX_LINE + 10];    /*  character buffer 		   */
-    char      *endptr;               /*  for strtol()              */
-    ssize_t   n;		     		 /*  for reading from buffer   */
-    char      c;		     		 /*  for reading from buffer   */
-	int 	  i;					 /*  for reading from buffer   */
-    FILE      *fp;		     		 /*  for file reading          */
-    int		  s;	     			 /*  for file reading	   	   */
-    int	      f_len;		         /*  to store file length 	   */
-	void 	  *ptr; 				 /*	for file reading */
+	char 	  msg_type[MAX_LINE];	 /*	 character buffer			*/
+	char 	  msg[MAX_LINE + 10];    /*  character buffer 		   	*/
+    char      *endptr;               /*  for strtol()              	*/
+    ssize_t   n;		     		 /*  for reading from buffer   	*/
+    char      c;		     		 /*  for reading from buffer   	*/
+	int 	  i;					 /*  for reading from buffer   	*/
+    FILE      *fp;		     		 /*  for file reading          	*/
+    int		  s;	     			 /*  for file reading	   	   	*/
+    int	      f_len;		         /*  to store file length 	   	*/
+	void 	  *ptr; 				 /*	for file reading 			*/
 	struct 	  sockaddr_in  si_other;
 	int 	  s_len;
 
@@ -80,7 +81,6 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
     }
 
-    
     /*  Enter an infinite loop to respond
         to client requests and echo input  */
 
@@ -89,14 +89,30 @@ int main(int argc, char *argv[]) {
 		i = 0;
 		// Retrieve first line from the connected socket
 		memset(buffer,0, sizeof(buffer));
-		while ( (n = read(conn_s, &c, 1)) > 0 ) {
-			buffer[i] = c;
-			//strcat(buffer, c);
-			i++;
-			if ( (c == '\n')){
-				break;
-			}    
-		}
+		printf("Waiting for data...");
+        fflush(stdout);
+		printf("waiting on port %d\n", port);
+        n = recvfrom(list_s, buffer, MAX_LINE, 0, (struct sockaddr *) &si_other, &s_len);
+        printf("received %d bytes\n", n);
+        if (n > 0) {
+                buffer[n] = 0;
+                printf("received message: \"%s\"\n", buffer);
+        }
+		
+		printf("made it \n");
+
+		char *line_start = buffer;
+	    char *line_end;
+		memset(msg_type, 0, sizeof(msg_type));
+	    (line_end = (char*)memchr((void*)line_start, '\n', n - (line_start - buffer))))
+
+		*line_end = 0;
+		msg_type = line_start;
+		line_start = line_end + 1;
+	    
+		/* Shift buffer down so the unprocessed data is at the start */
+	    n -= (line_start - buffer);
+	    memmove(buffer, line_start, n);
 
 		i = 0;
 		printf(buffer);
@@ -107,12 +123,6 @@ int main(int argc, char *argv[]) {
 			memset(msg, 0, sizeof(msg));
 
 			fflush(stdout);
-		     
-		    //try to receive some data, this is a blocking call
-		    if ((n = recvfrom(s, buffer, strlen(buffer), 0, (struct sockaddr *) &si_other, &s_len)) == -1)
-		    {
-		        exit(EXIT_FAILURE);
-		    }
 			printf(buffer);
 			sprintf(msg, "%d", strlen(buffer));
 			strcat(msg, "\n");
