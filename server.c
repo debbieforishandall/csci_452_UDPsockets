@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     short int port;                  /*  port number               */
     struct    sockaddr_in servaddr;  /*  socket address structure  */
     char      buffer[MAX_LINE];      /*  character buffer          */
-	char 	  msg_type[MAX_LINE];	 /*	 character buffer			*/
+	char 	  msg_type[MAX_LINE + 1];	 /*	 character buffer			*/
 	char 	  msg[MAX_LINE + 10];    /*  character buffer 		   	*/
     char      *endptr;               /*  for strtol()              	*/
     ssize_t   n;		     		 /*  for reading from buffer   	*/
@@ -100,42 +100,47 @@ int main(int argc, char *argv[]) {
         }
 		
 		printf("made it \n");
+		printf("Before shifting: %s", buffer);
 
-		char *line_start = buffer;
+		/*char *line_start = buffer;
 	    char *line_end;
 		memset(msg_type, 0, sizeof(msg_type));
-	    (line_end = (char*)memchr((void*)line_start, '\n', n - (line_start - buffer))))
+	    line_end = (char*)memchr((void*)line_start, '\n', n - (line_start - buffer));
 
 		*line_end = 0;
-		msg_type = line_start;
-		line_start = line_end + 1;
+		*msg_type = line_start;
+		line_start = line_end + 1;*/
+		
+		char* pch = strchr(buffer,'\n');
+		strncpy(msg_type, buffer, pch-buffer+1);
+		msg_type[MAX_LINE] = '\0';
 	    
 		/* Shift buffer down so the unprocessed data is at the start */
-	    n -= (line_start - buffer);
-	    memmove(buffer, line_start, n);
+	    /*n -= (line_start - buffer);
+	    memmove(buffer, line_start, n);*/
+		strcpy(msg, &buffer[pch-buffer+1]);
 
-		i = 0;
-		printf(buffer);
+		printf("After shifting: %s", buffer);
+		printf("Message Type: %s\n", msg_type);
 		// Check what type of request
-		if((strcmp(buffer, "CAP\n") == 0) || (strcmp(buffer, "CAP") == 0))
+		if((strcmp(msg_type, "CAP\n") == 0) || (strcmp(msg_type, "CAP") == 0))
 		{ //String request
 			memset(buffer, 0, sizeof(buffer));
-			memset(msg, 0, sizeof(msg));
 
 			fflush(stdout);
-			printf(buffer);
-			sprintf(msg, "%d", strlen(buffer));
-			strcat(msg, "\n");
+			printf("In CAP block: %s", msg);
+			//sprintf(buffer, "%d", strlen(msg));
+			//strcat(buffer, "\n");
 	
 			i = 0;
-			while( buffer[i]){
-				buffer[i] = toupper(buffer[i]);
+			while( msg[i]){
+				msg[i] = toupper(msg[i]);
 				i++;
 			}
-			strcat(msg, buffer);
+			strcat(buffer, msg);
 
 			// Write back the CAP string to the same socket.
-			if (sendto(s, buffer, n, 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
+			if (sendto(list_s, buffer, strlen(buffer), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
 		    {
 		        exit(EXIT_FAILURE);
 		    }
