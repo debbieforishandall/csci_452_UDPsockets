@@ -244,7 +244,7 @@ int main(int argc, char *argv[]) {
 				memset(buffer, 0, sizeof(buffer));
 				n = 0;
 				received = 0;
-				printf("Here after connect\n");
+				printf("File size is %d in int\n", atoi(msg));
 
 				//Read the file received from server into new file
 				while (received <= atoi(msg))
