@@ -106,7 +106,7 @@ int main(int argc, char *argv[]) {
 			strcat(msg, "\n");
 			//printf(msg);
 
-		    // Send string to echo server, and retrieve response 
+		    // Send string to server
 		    sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 			//Read first line from server
 			memset(buffer, 0, sizeof(buffer));
@@ -140,25 +140,40 @@ int main(int argc, char *argv[]) {
 			fgets(buffer, MAX_LINE, stdin);
 			strcat(msg, buffer);
 			strcat(msg, "\n");
+
+			memset(buffer, 0, sizeof(buffer));
+
+			//Put the tcp port of the client into the buffer char array
+			sprintf(buffer, %d, portno); 
+
+			//Append the tcp port string to the message being sent
+			strcat(msg, buffer);
+			strcat(msg, "\n");
 			//printf(msg);
 
-		    // Send string to echo server, and retrieve response 
-		    Writeline(conn_s, msg, strlen(msg));
+		    // Send string to server
+			sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 			
 			memset(f_size, 0, sizeof(f_size));
+			memset(buffer, 0, sizeof(buffer));
 			i = 0;
 
-			//Read the size of the file to be received
-		    while ( (n = read(conn_s, &c, 1)) > 0 ) 
-			{
-		        if ( (c == '\n')){
-			    	break;
-		        } 
-				f_size[i] = c;
-				i++;   
+			rv = recvfrom(conn_s, buffer, sizeof(buffer), 0, (struct sockaddr *)&servaddr, &slen);
+			if (rv == 0) {
+				fprintf(stderr, "Connection closed.\n");
+				abort();
+			}
+		    if (rv < 0 && errno == EAGAIN) {
+			    /* no data for now, call back when the socket is readable */
+			    return;
 		    }
+		    if (rv < 0) {
+			    perror("Connection error");
+			    abort();
+		    }
+
+		    
 			
-			i = 0;
 			//ptr = malloc(1);
 			memset(msg, 0, sizeof(msg));
 			printf("Size: %d\n", atoi(f_size));
