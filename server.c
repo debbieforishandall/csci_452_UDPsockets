@@ -178,7 +178,7 @@ int main(int argc, char *argv[]) {
 			else{
 				bzero(buffer, MAX_LINE);
 				bzero(msg, MAX_LINE);
-				memset(f_len, 0, sizeof(f_len));
+				f_len = 0;
 
 				//Get file length
 				fseek(fp, 0L, SEEK_END);
@@ -190,7 +190,7 @@ int main(int argc, char *argv[]) {
 				strcat(buffer, msg);
 				strcat(buffer, "\n");
 			
-				printf("Size: %d", f_len);
+				printf("Size: %d\n", f_len);
 				
 				//Send OK\n###\n to client
 
@@ -248,9 +248,11 @@ int main(int argc, char *argv[]) {
 						if( feof(fp) ){ 
 							break ;
 						}
-						if((n = write(conn_s, ptr, 1)) != -1){
+						n = write(conn_s, ptr, 1);
+						if(n > 0){
 							printf(ptr);
 							sent+= n;
+							printf("Sent %d so far\n", sent);
 						}
 					}
 
