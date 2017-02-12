@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
 				printf("File size is %d in int\n", f_size);
 
 				//Read the file received from server into new file
-				while (received <= f_size)
+				while (received <= f_size - 1)
 				{	
 					n = read(tcp_conn_s, &c, 1);
 					if(n > 0)
