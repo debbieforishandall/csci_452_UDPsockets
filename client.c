@@ -244,17 +244,19 @@ int main(int argc, char *argv[]) {
 				memset(buffer, 0, sizeof(buffer));
 				n = 0;
 				received = 0;
+				printf("Here after connect\n");
 
 				//Read the file received from server into new file
 				while (received <= atoi(f_size))
 				{	
+					printf("In receiving while block\n");
 					n = read(conn_s, &c, 1);
 					if(n > 0)
 				    {
 						fwrite(&c, 1, 1, fp);
 						printf(&c);
 						received+= n;
-						//printf("received so far: %d", received);
+						printf("received %d so far \n", received);
 					} 
 				}
 				
