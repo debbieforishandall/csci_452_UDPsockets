@@ -176,6 +176,16 @@ int main(int argc, char *argv[]) {
 				}
 			}
 			else{
+				bzero(buffer, MAX_LINE);
+				bzero(msg, MAX_LINE);
+
+				sprintf(msg, "%d", f_len);
+				strcpy(buffer, "OK\n");
+				strcat(buffer, msg);
+				strcat(buffer, "\n");
+			
+				printf("Size: %d", f_len);
+				
 				//Send OK\n###\n to client
 
 				if (sendto(list_s, buffer, strlen(buffer), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
@@ -194,6 +204,12 @@ int main(int argc, char *argv[]) {
 					listening socket, and call listen()  */
 
 				int yes=1;
+				/*  Create the listening socket  */
+
+				if ( (tcp_list_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+					fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
+					exit(EXIT_FAILURE);
+				}
 
 				if (setsockopt(tcp_list_s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
 					perror("setsockopt");
@@ -218,16 +234,6 @@ int main(int argc, char *argv[]) {
 					fseek(fp, 0L, SEEK_END);
 					f_len = ftell(fp);
 					rewind(fp);
-	
-					bzero(buffer, MAX_LINE);
-					bzero(msg, MAX_LINE);
-
-					sprintf(msg, "%d", f_len);
-					strcpy(buffer, "OK\n");
-					strcat(buffer, msg);
-					strcat(buffer, "\n");
-				
-					printf("Size: %d", f_len);
 
 					ptr = malloc(1);
 					n = 0;
