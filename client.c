@@ -250,7 +250,7 @@ int main(int argc, char *argv[]) {
 				while (received <= atoi(f_size))
 				{	
 					printf("In receiving while block\n");
-					n = read(conn_s, &c, 1);
+					n = read(tcp_conn_s, &c, 1);
 					if(n > 0)
 				    {
 						fwrite(&c, 1, 1, fp);
