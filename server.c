@@ -178,6 +178,12 @@ int main(int argc, char *argv[]) {
 			else{
 				bzero(buffer, MAX_LINE);
 				bzero(msg, MAX_LINE);
+				memset(f_len, 0, sizeof(f_len));
+
+				//Get file length
+				fseek(fp, 0L, SEEK_END);
+				f_len = ftell(fp);
+				rewind(fp);
 
 				sprintf(msg, "%d", f_len);
 				strcpy(buffer, "OK\n");
@@ -203,10 +209,11 @@ int main(int argc, char *argv[]) {
 				/*  Bind our socket addresss to the 
 					listening socket, and call listen()  */
 
-				int yes=1;
+				int yes = 1;
 				/*  Create the listening socket  */
 
-				if ( (tcp_list_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+				tcp_list_s = socket(AF_INET, SOCK_STREAM, 0);
+				if (tcp_list_s < 0) {
 					fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
 					exit(EXIT_FAILURE);
 				}
@@ -229,12 +236,7 @@ int main(int argc, char *argv[]) {
 				if ( (conn_s = accept(tcp_list_s, NULL, NULL) ) < 0 ) {
 					fprintf(stderr, "ECHOSERV: Error calling accept()\n");
 					exit(EXIT_FAILURE);
-				} else {		
-	
-					fseek(fp, 0L, SEEK_END);
-					f_len = ftell(fp);
-					rewind(fp);
-
+				} else {
 					ptr = malloc(1);
 					n = 0;
 					
