@@ -187,9 +187,9 @@ int main(int argc, char *argv[]) {
 			//ptr = malloc(1);
 			
 			//Check if file is not found
-			if(strcmp(msg, "NOT FOUND") == 0){
+			if(strcmp(msg, "NOT FOUND\n") == 0){
 				printf("Specified file not found\n");
-			} else if (strcmp(msg, "OK") == 0){
+			} else if (strcmp(msg, "OK\n") == 0){
 				//received = 9
 				memset(msg, 0, sizeof(msg));
 				strcpy(msg, &buffer[pch-buffer+1]);
