@@ -193,14 +193,21 @@ int main(int argc, char *argv[]) {
 				/*  Bind our socket addresss to the 
 					listening socket, and call listen()  */
 
+				int yes=1;
+
+				if (setsockopt(tcp_list_s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
+					perror("setsockopt");
+					exit(1);
+				}
+
 				if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
-				fprintf(stderr, "ECHOSERV: Error calling bind()\n");
-				exit(EXIT_FAILURE);
+					fprintf(stderr, "ECHOSERV: Error calling bind()\n");
+					exit(EXIT_FAILURE);
 				}
 
 				if ( listen(tcp_list_s, LISTENQ) < 0 ) {
-				fprintf(stderr, "ECHOSERV: Error calling listen()\n");
-				exit(EXIT_FAILURE);
+					fprintf(stderr, "ECHOSERV: Error calling listen()\n");
+					exit(EXIT_FAILURE);
 				}
 
 				if ( (conn_s = accept(tcp_list_s, NULL, NULL) ) < 0 ) {
