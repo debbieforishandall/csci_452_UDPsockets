@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
 
 			//Get the file name
 			char* ptr = strchr(msg,'\n');
-			strncpy(buffer, msg, ptr-msg+1);
+			strncpy(buffer, msg, ptr-msg);
 			buffer[MAX_LINE] = '\0';
 		
 			// copy tcp port to new buffer
