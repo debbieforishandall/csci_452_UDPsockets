@@ -28,7 +28,9 @@ int main(int argc, char *argv[]) {
     struct    sockaddr_in servaddr;  /*  socket address structure  */
     char      buffer[MAX_LINE];      /*  character buffer          */
 	char 	  msg_type[MAX_LINE + 1];	 /*	 character buffer			*/
+	char 	  tcp_buff[MAX_LINE];	 /*	 tcp port string buffer		*/
 	char 	  msg[MAX_LINE + 10];    /*  character buffer 		   	*/
+	short int tcp_port;				 /* tcp port number 			*/
     char      *endptr;               /*  for strtol()              	*/
     ssize_t   n;		     		 /*  for reading from buffer   	*/
     char      c;		     		 /*  for reading from buffer   	*/
@@ -100,27 +102,17 @@ int main(int argc, char *argv[]) {
         }
 		
 		printf("made it \n");
-		printf("Before shifting: %s", buffer);
-
-		/*char *line_start = buffer;
-	    char *line_end;
-		memset(msg_type, 0, sizeof(msg_type));
-	    line_end = (char*)memchr((void*)line_start, '\n', n - (line_start - buffer));
-
-		*line_end = 0;
-		*msg_type = line_start;
-		line_start = line_end + 1;*/
+		printf("Before spliting: %s", buffer);
 		
+		//Get the request type
 		char* pch = strchr(buffer,'\n');
 		strncpy(msg_type, buffer, pch-buffer+1);
 		msg_type[MAX_LINE] = '\0';
 	    
-		/* Shift buffer down so the unprocessed data is at the start */
-	    /*n -= (line_start - buffer);
-	    memmove(buffer, line_start, n);*/
+		/* copy unprocessed data to new buffer*/
 		strcpy(msg, &buffer[pch-buffer+1]);
 
-		printf("After shifting: %s", buffer);
+		printf("After spliting: %s", buffer);
 		printf("Message Type: %s\n", msg_type);
 		// Check what type of request
 		if((strcmp(msg_type, "CAP\n") == 0) || (strcmp(msg_type, "CAP") == 0))
@@ -147,31 +139,57 @@ int main(int argc, char *argv[]) {
 			//bzero(buffer, MAX_LINE);
 			//bzero(msg, MAX_LINE);    
 		} 
-		else if((strcmp(buffer, "FILE\n") == 0) || (strcmp(buffer, "FILE") == 0))
+		else if((strcmp(msg_type, "FILE\n") == 0) || (strcmp(msg_type, "FILE") == 0))
 		{ //File request
 			memset(buffer, 0, sizeof(buffer));
-			//Read next line
-			i = 0;
-			while ( (n = read(conn_s, &c, 1)) > 0 ) 
-			{
-				if ( (c == '\n')){
-					break;
-				} 
-				buffer[i] = c;
-				i++;   
-			} 	 
-			printf(buffer);
+			memset(tcp_buff, 0, sizeof(tcp_buff));
+			//Get the file name
+			char* ptr = strchr(msg,'\n');
+			strncpy(buffer, msg, ptr-msg+1);
+			buffer[MAX_LINE] = '\0';
+		
+			// copy tcp port to new buffer
+			strcpy(tcp_buff, &msg[ptr-msg+1]);	
+			tcp_port = atoi(tcp_buff);
+			 
+			printf("File name: %s", buffer);
+			printf("Tcp Port: %d", tcp_port);
+			
+			//Open file
 			fp = fopen(buffer,"r");
-			if(fp != NULL){
+
+			if(fp == NULL){
+				//File not found
+				memset(msg, 0, sizeof(msg));
+				strcpy(msg, "NOT FOUND");
+				strcat(msg, "\n");
+				if (sendto(list_s, msg, strlen(msg), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
+				{
+				    exit(EXIT_FAILURE);
+				}
+			}
+			else{
 				fseek(fp, 0L, SEEK_END);
 				f_len = ftell(fp);
 				rewind(fp);
 	
 				bzero(buffer, MAX_LINE);
 				bzero(msg, MAX_LINE);
+
 				sprintf(msg, "%d", f_len);
-				strcat(msg, "\n");
+				strcpy(buffer, "OK\n");
+				strcat(buffer, msg);
+				strcat(buffer, "\n");
+				
 				printf("Size: %d", f_len);
+
+				//Send OK\n###\n to client
+
+				if (sendto(list_s, buffer, strlen(buffer), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
+				{
+				    exit(EXIT_FAILURE);
+				}
+
 				ptr = malloc(1);
 				while(1)
 				{
@@ -185,15 +203,6 @@ int main(int argc, char *argv[]) {
 				fclose(fp);
 				printf("Closed File");
 			} 
-			else 
-			{//File not found
-				memset(msg, 0, sizeof(msg));
-				strcpy(msg, "9");
-				strcat(msg, "\n");
-				strcat(msg, "NOT FOUND");
-			}
-
-	   		Writeline(conn_s, msg, sizeof(msg));
 		}
 		else if(strcmp(buffer, "QUIT") == 0)
 		{//Close connection request
