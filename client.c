@@ -138,10 +138,17 @@ int main(int argc, char *argv[]) {
 			memset(msg, 0, sizeof(msg));
 			memset(f_name, 0, sizeof(f_name));
 			printf("Enter the file name: ");
-			strncpy(msg, "FILE\n", 6);
+			strcpy(msg, "FILE\n");
 		    
 			fgets(buffer, MAX_LINE, stdin);
 			strcpy(f_name, buffer);
+			int nlen = strlen(msg);
+			//Remove '\n' char if any from name of file from fgets
+			if (nlen > 0 && f_name[nlen-1] == '\n')
+			{
+				f_name[nlen-1] = '\0';
+			}
+
 			strcat(msg, buffer);
 			strcat(msg, "\n");
 
@@ -208,8 +215,8 @@ int main(int argc, char *argv[]) {
 				 /*  Create the tcp listening socket  */
 
 				if ( (tcp_conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
-				fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
-				exit(EXIT_FAILURE);
+					fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
+					exit(EXIT_FAILURE);
 				}
 
 
@@ -235,20 +242,20 @@ int main(int argc, char *argv[]) {
 				//Open a new file for writing
 				fp = fopen (f_name, "w+");
 				memset(buffer, 0, sizeof(buffer));
+				n = 0;
 				received = 0;
 
 				//Read the file received from server into new file
-				while ( ((n = read(conn_s, &c, 1)) > 0))
-				{
-					if(received < atoi(f_size))
+				while (received <= atoi(f_size))
+				{	
+					n = read(conn_s, &c, 1);
+					if(n > 0)
 				    {
 						fwrite(&c, 1, 1, fp);
 						printf(&c);
 						received+= n;
 						//printf("received so far: %d", received);
-					} else {
-						break;
-					}
+					} 
 				}
 				
 				fclose(fp);
