@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 	struct 		sockaddr_in tcp_addr;	/*	tcp socket address structure */
     char		buffer[MAX_LINE];       /*  character buffer          */
     char		msg[MAX_LINE + 7];		/*  for socket read and write */
-	char 		f_size[MAX_LINE];		/* 	holds size of file from server */
+	int 		f_size;					/* 	holds size of file from server */
 	char		f_name[MAX_LINE];		/*	holds file name			*/
     struct		hostent	*server;		/*  holds remote IP address   */
     char		user_entry[10];			/*  for user entered command  */
@@ -165,7 +165,6 @@ int main(int argc, char *argv[]) {
 		    // Send string to server
 			sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 			
-			memset(f_size, 0, sizeof(f_size));
 			memset(buffer, 0, sizeof(buffer));
 			i = 0;
 
@@ -244,18 +243,19 @@ int main(int argc, char *argv[]) {
 				memset(buffer, 0, sizeof(buffer));
 				n = 0;
 				received = 0;
-				printf("File size is %d in int\n", atoi(msg));
+				f_size = 0;
+				f_size = atoi(msg);
+				printf("File size is %d in int\n", f_size);
 
 				//Read the file received from server into new file
-				while (received <= atoi(msg))
+				while (received <= f_size)
 				{	
-					printf("In receiving while block\n");
 					n = read(tcp_conn_s, &c, 1);
 					if(n > 0)
 				    {
 						fwrite(&c, 1, 1, fp);
 						printf(&c);
-						received+= n;
+						received += n;
 						printf("received %d so far \n", received);
 					} 
 				}
