@@ -142,12 +142,13 @@ int main(int argc, char *argv[]) {
 		    
 			fgets(buffer, MAX_LINE, stdin);
 			strcpy(f_name, buffer);
+			strcat(f_name,'\0');
 			int nlen = strlen(msg);
 			//Remove '\n' char if any from name of file from fgets
-			if (nlen > 0 && f_name[nlen-1] == '\n')
+			/*if (nlen > 0 && f_name[nlen-1] == '\n')
 			{
 				f_name[nlen-1] = '\0';
-			}
+			}*/
 
 			strcat(msg, buffer);
 			strcat(msg, "\n");
@@ -274,7 +275,7 @@ int main(int argc, char *argv[]) {
     } 
 	while(strcmp(user_entry, "q") );
     
-	Writeline(conn_s, "QUIT", 5);
+	//Writeline(conn_s, "QUIT", 5);
 
     return EXIT_SUCCESS;
 }
