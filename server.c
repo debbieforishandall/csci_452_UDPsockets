@@ -23,6 +23,7 @@ ssize_t Writeline(int, const void *, size_t);
 
 int main(int argc, char *argv[]) {
     int       list_s;                /*  listening socket          */
+	int 	  tcp_list_s;			 /*  tcp listening socket 	   */
     int       conn_s;                /*  connection socket         */
     short int port;                  /*  port number               */
     struct    sockaddr_in servaddr;  /*  socket address structure  */
@@ -36,10 +37,11 @@ int main(int argc, char *argv[]) {
     char      c;		     		 /*  for reading from buffer   	*/
 	int 	  i;					 /*  for reading from buffer   	*/
     FILE      *fp;		     		 /*  for file reading          	*/
-    int		  s;	     			 /*  for file reading	   	   	*/
+    int		  sent;	     			 /*  for file sending	   	   	*/
     int	      f_len;		         /*  to store file length 	   	*/
 	void 	  *ptr; 				 /*	for file reading 			*/
 	struct 	  sockaddr_in  si_other;
+	struct 	  sockaddr_in si_tcp;	/* for tcp file sending */
 	int 	  s_len;
 
 
@@ -145,6 +147,7 @@ int main(int argc, char *argv[]) {
 		{ //File request
 			memset(buffer, 0, sizeof(buffer));
 			memset(tcp_buff, 0, sizeof(tcp_buff));
+
 			//Get the file name
 			char* ptr = strchr(msg,'\n');
 			strncpy(buffer, msg, ptr-msg+1);
@@ -156,6 +159,7 @@ int main(int argc, char *argv[]) {
 			 
 			printf("File name: %s", buffer);
 			printf("Tcp Port: %d\n", tcp_port);
+
 			
 			//Open file
 			fp = fopen(buffer,"r");
@@ -172,39 +176,71 @@ int main(int argc, char *argv[]) {
 				}
 			}
 			else{
-				fseek(fp, 0L, SEEK_END);
-				f_len = ftell(fp);
-				rewind(fp);
-	
-				bzero(buffer, MAX_LINE);
-				bzero(msg, MAX_LINE);
-
-				sprintf(msg, "%d", f_len);
-				strcpy(buffer, "OK\n");
-				strcat(buffer, msg);
-				strcat(buffer, "\n");
-				
-				printf("Size: %d", f_len);
-
 				//Send OK\n###\n to client
 
 				if (sendto(list_s, buffer, strlen(buffer), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
 				{
-				    exit(EXIT_FAILURE);
+					exit(EXIT_FAILURE);
+				}
+				/*  Set all bytes in socket address structure to
+				zero, and fill in the relevant data members   */
+
+				memset(&si_tcp, 0, sizeof(servaddr));
+				si_tcp.sin_family      = AF_INET;
+				si_tcp.sin_addr.s_addr = htonl(INADDR_ANY);
+				si_tcp.sin_port        = htons(tcp_port);
+
+				/*  Bind our socket addresss to the 
+					listening socket, and call listen()  */
+
+				if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
+				fprintf(stderr, "ECHOSERV: Error calling bind()\n");
+				exit(EXIT_FAILURE);
 				}
 
-				ptr = malloc(1);
-				while(1)
-				{
-					fread(ptr, 1, 1, fp);
-					if( feof(fp) ){ 
-						break ;
-					}
-					strcat(msg, ptr);
-					printf(ptr);
+				if ( listen(tcp_list_s, LISTENQ) < 0 ) {
+				fprintf(stderr, "ECHOSERV: Error calling listen()\n");
+				exit(EXIT_FAILURE);
 				}
-				fclose(fp);
-				printf("Closed File");
+
+				if ( (conn_s = accept(tcp_list_s, NULL, NULL) ) < 0 ) {
+					fprintf(stderr, "ECHOSERV: Error calling accept()\n");
+					exit(EXIT_FAILURE);
+				} else {		
+	
+					fseek(fp, 0L, SEEK_END);
+					f_len = ftell(fp);
+					rewind(fp);
+	
+					bzero(buffer, MAX_LINE);
+					bzero(msg, MAX_LINE);
+
+					sprintf(msg, "%d", f_len);
+					strcpy(buffer, "OK\n");
+					strcat(buffer, msg);
+					strcat(buffer, "\n");
+				
+					printf("Size: %d", f_len);
+
+					ptr = malloc(1);
+					n = 0;
+					
+
+					//write the file to socket
+					while ( sent <= f_len)
+					{
+						fread(ptr, 1, 1, fp);
+						if( feof(fp) ){ 
+							break ;
+						}
+						if((n = write(conn_s, ptr, 1)) != -1){
+							printf(ptr);
+							sent+= n;
+						}
+					}
+
+					printf("Closed File");
+				}
 			} 
 		}
 		else if(strcmp(buffer, "QUIT") == 0)
