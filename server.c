@@ -258,18 +258,23 @@ int main(int argc, char *argv[]) {
 					}
 
 					printf("Closed File\n");
-					//  Close the connected socket 
+					//  SHut down the connected socket 
 
-					if ( close(conn_s) < 0 ) {
-						fprintf(stderr, "ECHOSERV: Error calling close()\n");
+					if ( shutdown(conn_s, SHUT_WR) < 0 ) {
+						fprintf(stderr, "ECHOSERV: Error calling shutdown()\n");
 						exit(EXIT_FAILURE);
 					}
 				}
 			} 
 		}
-		else if(strcmp(buffer, "QUIT") == 0)
+		else if(strcmp(buffer, "QUIT\n") == 0)
 		{
 			memset(buffer, 0, sizeof(buffer));
+			printf("QUIT sent\n");
+			if ( close(conn_s) < 0 ) {
+				fprintf(stderr, "ECHOSERV: Error calling shutdown()\n");
+				exit(EXIT_FAILURE);
+			}
 		} 
 		else 
 		{
