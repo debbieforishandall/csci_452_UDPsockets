@@ -91,6 +91,8 @@ int main(int argc, char *argv[]) {
 		i = 0;
 		// Retrieve first line from the connected socket
 		memset(buffer,0, sizeof(buffer));
+		memset(msg_type, 0, sizeof(msg_type));
+		memset(msg, 0, sizeof(msg));
 		printf("Waiting for data...");
         fflush(stdout);
 		printf("waiting on port %d\n", port);
