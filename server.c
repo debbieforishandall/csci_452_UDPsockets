@@ -185,7 +185,7 @@ int main(int argc, char *argv[]) {
 				/*  Set all bytes in socket address structure to
 				zero, and fill in the relevant data members   */
 
-				memset(&si_tcp, 0, sizeof(servaddr));
+				memset(&si_tcp, 0, sizeof(si_tcp));
 				si_tcp.sin_family      = AF_INET;
 				si_tcp.sin_addr.s_addr = htonl(INADDR_ANY);
 				si_tcp.sin_port        = htons(tcp_port);
@@ -240,18 +240,18 @@ int main(int argc, char *argv[]) {
 					}
 
 					printf("Closed File");
+					//  Close the connected socket 
+
+					if ( close(conn_s) < 0 ) {
+						fprintf(stderr, "ECHOSERV: Error calling close()\n");
+						exit(EXIT_FAILURE);
+					}
 				}
 			} 
 		}
 		else if(strcmp(buffer, "QUIT") == 0)
-		{//Close connection request
-			memset(buffer, 0, sizeof(buffer));	    
-			//  Close the connected socket 
-
-			if ( close(conn_s) < 0 ) {
-				fprintf(stderr, "ECHOSERV: Error calling close()\n");
-				exit(EXIT_FAILURE);
-			}
+		{
+			memset(buffer, 0, sizeof(buffer));
 		} 
 		else 
 		{
