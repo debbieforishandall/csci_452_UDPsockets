@@ -247,7 +247,7 @@ int main(int argc, char *argv[]) {
 				printf("Here after connect\n");
 
 				//Read the file received from server into new file
-				while (received <= atoi(f_size))
+				while (received <= atoi(msg))
 				{	
 					printf("In receiving while block\n");
 					n = read(tcp_conn_s, &c, 1);
