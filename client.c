@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 	struct 		sockaddr_in tcp_addr;	/*	tcp socket address structure */
     char		buffer[MAX_LINE];       /*  character buffer          */
     char		msg[MAX_LINE + 7];		/*  for socket read and write */
-	char 		f_size[MAX_LINE];		/* 	holds size of file from server */
+	int 		f_size;					/* 	holds size of file from server */
 	char		f_name[MAX_LINE];		/*	holds file name			*/
     struct		hostent	*server;		/*  holds remote IP address   */
     char		user_entry[10];			/*  for user entered command  */
@@ -138,10 +138,17 @@ int main(int argc, char *argv[]) {
 			memset(msg, 0, sizeof(msg));
 			memset(f_name, 0, sizeof(f_name));
 			printf("Enter the file name: ");
-			strncpy(msg, "FILE\n", 6);
+			strcpy(msg, "FILE\n");
 		    
 			fgets(buffer, MAX_LINE, stdin);
 			strcpy(f_name, buffer);
+			int nlen = strlen(msg);
+			//Remove '\n' char if any from name of file from fgets
+			if (nlen > 0 && f_name[nlen-1] == '\n')
+			{
+				f_name[nlen-1] = '\0';
+			}
+
 			strcat(msg, buffer);
 			strcat(msg, "\n");
 
@@ -158,7 +165,6 @@ int main(int argc, char *argv[]) {
 		    // Send string to server
 			sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 			
-			memset(f_size, 0, sizeof(f_size));
 			memset(buffer, 0, sizeof(buffer));
 			i = 0;
 
@@ -196,20 +202,20 @@ int main(int argc, char *argv[]) {
 			} else if (strcmp(msg, "OK\n") == 0){
 				//received = 9
 				memset(msg, 0, sizeof(msg));
-				strcpy(msg, &buffer[pch-buffer+1]);
+				strcpy(msg, &buffer[pch-buffer]);
 				printf("Size: %s", msg);
-				int len = strlen(msg);
+				/*int len = strlen(msg);
 				//Remove '\n' char if any from name of file from fgets
 				if (len > 0 && msg[len-1] == '\n')
 				{
 					msg[len-1] = '\0';
-				}
+				}*/
 
 				 /*  Create the tcp listening socket  */
 
 				if ( (tcp_conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
-				fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
-				exit(EXIT_FAILURE);
+					fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
+					exit(EXIT_FAILURE);
 				}
 
 
@@ -235,20 +241,23 @@ int main(int argc, char *argv[]) {
 				//Open a new file for writing
 				fp = fopen (f_name, "w+");
 				memset(buffer, 0, sizeof(buffer));
+				n = 0;
 				received = 0;
+				f_size = 0;
+				f_size = atoi(msg);
+				printf("File size is %d in int\n", f_size);
 
 				//Read the file received from server into new file
-				while ( ((n = read(conn_s, &c, 1)) > 0))
-				{
-					if(received < atoi(f_size))
+				while (received <= f_size - 1)
+				{	
+					n = read(tcp_conn_s, &c, 1);
+					if(n > 0)
 				    {
 						fwrite(&c, 1, 1, fp);
 						printf(&c);
-						received+= n;
-						//printf("received so far: %d", received);
-					} else {
-						break;
-					}
+						received += n;
+						printf("received %d so far \n", received);
+					} 
 				}
 				
 				fclose(fp);
