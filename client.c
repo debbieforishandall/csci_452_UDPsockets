@@ -202,14 +202,14 @@ int main(int argc, char *argv[]) {
 			} else if (strcmp(msg, "OK\n") == 0){
 				//received = 9
 				memset(msg, 0, sizeof(msg));
-				strcpy(msg, &buffer[pch-buffer+1]);
+				strcpy(msg, &buffer[pch-buffer]);
 				printf("Size: %s", msg);
-				int len = strlen(msg);
+				/*int len = strlen(msg);
 				//Remove '\n' char if any from name of file from fgets
 				if (len > 0 && msg[len-1] == '\n')
 				{
 					msg[len-1] = '\0';
-				}
+				}*/
 
 				 /*  Create the tcp listening socket  */
 
