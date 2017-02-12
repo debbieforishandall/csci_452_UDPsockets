@@ -23,6 +23,7 @@ ssize_t Writeline(int, const void *, size_t);
 
 int main(int argc, char *argv[]) {
     int       list_s;                /*  listening socket          */
+	int 	  tcp_list_s;			 /*  tcp listening socket 	   */
     int       conn_s;                /*  connection socket         */
     short int port;                  /*  port number               */
     struct    sockaddr_in servaddr;  /*  socket address structure  */
@@ -36,10 +37,11 @@ int main(int argc, char *argv[]) {
     char      c;		     		 /*  for reading from buffer   	*/
 	int 	  i;					 /*  for reading from buffer   	*/
     FILE      *fp;		     		 /*  for file reading          	*/
-    int		  s;	     			 /*  for file reading	   	   	*/
+    int		  sent;	     			 /*  for file sending	   	   	*/
     int	      f_len;		         /*  to store file length 	   	*/
 	void 	  *ptr; 				 /*	for file reading 			*/
 	struct 	  sockaddr_in  si_other;
+	struct 	  sockaddr_in si_tcp;	/* for tcp file sending */
 	int 	  s_len;
 
 
@@ -145,17 +147,19 @@ int main(int argc, char *argv[]) {
 		{ //File request
 			memset(buffer, 0, sizeof(buffer));
 			memset(tcp_buff, 0, sizeof(tcp_buff));
+
 			//Get the file name
 			char* ptr = strchr(msg,'\n');
-			strncpy(buffer, msg, ptr-msg+1);
+			strncpy(buffer, msg, ptr-msg);
 			buffer[MAX_LINE] = '\0';
 		
 			// copy tcp port to new buffer
 			strcpy(tcp_buff, &msg[ptr-msg+1]);	
 			tcp_port = atoi(tcp_buff);
 			 
-			printf("File name: %s", buffer);
+			printf("File name: %s\n", buffer);
 			printf("Tcp Port: %d\n", tcp_port);
+
 			
 			//Open file
 			fp = fopen(buffer,"r");
@@ -172,50 +176,100 @@ int main(int argc, char *argv[]) {
 				}
 			}
 			else{
+				bzero(buffer, MAX_LINE);
+				bzero(msg, MAX_LINE);
+				f_len = 0;
+
+				//Get file length
 				fseek(fp, 0L, SEEK_END);
 				f_len = ftell(fp);
 				rewind(fp);
-	
-				bzero(buffer, MAX_LINE);
-				bzero(msg, MAX_LINE);
 
 				sprintf(msg, "%d", f_len);
 				strcpy(buffer, "OK\n");
 				strcat(buffer, msg);
 				strcat(buffer, "\n");
+			
+				printf("Size: %d\n", f_len);
 				
-				printf("Size: %d", f_len);
-
 				//Send OK\n###\n to client
 
 				if (sendto(list_s, buffer, strlen(buffer), 0, (struct sockaddr*) &si_other, sizeof(si_other)) == -1)
 				{
-				    exit(EXIT_FAILURE);
+					exit(EXIT_FAILURE);
+				}
+				/*  Set all bytes in socket address structure to
+				zero, and fill in the relevant data members   */
+
+				memset(&si_tcp, 0, sizeof(si_tcp));
+				si_tcp.sin_family      = AF_INET;
+				si_tcp.sin_addr.s_addr = htonl(INADDR_ANY);
+				si_tcp.sin_port        = htons(tcp_port);
+
+				/*  Bind our socket addresss to the 
+					listening socket, and call listen()  */
+
+				int yes = 1;
+				/*  Create the listening socket  */
+
+				tcp_list_s = socket(AF_INET, SOCK_STREAM, 0);
+				if (tcp_list_s < 0) {
+					fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
+					exit(EXIT_FAILURE);
 				}
 
-				ptr = malloc(1);
-				while(1)
-				{
-					fread(ptr, 1, 1, fp);
-					if( feof(fp) ){ 
-						break ;
-					}
-					strcat(msg, ptr);
-					printf(ptr);
+				if (setsockopt(tcp_list_s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
+					perror("setsockopt");
+					exit(1);
 				}
-				fclose(fp);
-				printf("Closed File");
+
+				if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
+					fprintf(stderr, "ECHOSERV: Error calling bind()\n");
+					exit(EXIT_FAILURE);
+				}
+
+				if ( listen(tcp_list_s, LISTENQ) < 0 ) {
+					fprintf(stderr, "ECHOSERV: Error calling listen()\n");
+					exit(EXIT_FAILURE);
+				}
+
+				if ( (conn_s = accept(tcp_list_s, NULL, NULL) ) < 0 ) {
+					fprintf(stderr, "ECHOSERV: Error calling accept()\n");
+					exit(EXIT_FAILURE);
+				} else {
+					ptr = malloc(1);
+					n = 0;
+					sent = 0;
+					
+
+					//write the file to socket
+					while ( sent < f_len)
+					{
+						fread(ptr, 1, 1, fp);
+						if( feof(fp) ){ 
+							break ;
+						}
+						n = write(conn_s, ptr, 1);
+						if(n > 0){
+							printf(ptr);
+							sent+= n;
+							printf("Sent %d so far\n", sent);
+						}
+					}
+
+					printf("Closed File\n");
+					//  Close the connected socket 
+
+					if ( close(conn_s) < 0 ) {
+						fprintf(stderr, "ECHOSERV: Error calling close()\n");
+						exit(EXIT_FAILURE);
+					}
+				}
 			} 
 		}
 		else if(strcmp(buffer, "QUIT") == 0)
-		{//Close connection request
-			memset(buffer, 0, sizeof(buffer));	    
-			//  Close the connected socket 
-
-			if ( close(conn_s) < 0 ) {
-				fprintf(stderr, "ECHOSERV: Error calling close()\n");
-				exit(EXIT_FAILURE);
-			}
+		{
+			memset(buffer, 0, sizeof(buffer));
 		} 
 		else 
 		{
