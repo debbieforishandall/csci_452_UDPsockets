@@ -144,7 +144,7 @@ int main(int argc, char *argv[]) {
 			memset(buffer, 0, sizeof(buffer));
 
 			//Put the tcp port of the client into the buffer char array
-			sprintf(buffer, %d, portno); 
+			sprintf(buffer, "%d", portno); 
 
 			//Append the tcp port string to the message being sent
 			strcat(msg, buffer);
@@ -171,32 +171,29 @@ int main(int argc, char *argv[]) {
 			    perror("Connection error");
 			    abort();
 		    }
-
-		    
 			
-			//ptr = malloc(1);
+			if (rv > 0) {
+                buffer[rv] = 0;
+                printf("received message: \"%s\"\n", buffer);
+			}
+	
+			//Process received string
 			memset(msg, 0, sizeof(msg));
-			printf("Size: %d\n", atoi(f_size));
-			//Check the first 9 bytes received to see if the file was not found
-			while ( ((n = read(conn_s, &c, 1)) > 0))
-			{
-				if (i <= 9) 
-				{
-					msg[i] = c;
-					i++; 
-				} 
-				else 
-				{
-					break;
-				}
-		    }
-			received = i;
 
+			char* pch = strchr(buffer,'\n');
+			strncpy(msg, buffer, pch-buffer+1);
+			msg[MAX_LINE+6] = '\0';
+			printf("File Status: %s\n", msg);
+			//ptr = malloc(1);
+			
 			//Check if file is not found
 			if(strcmp(msg, "NOT FOUND") == 0){
 				printf("Specified file not found\n");
-			} else {
+			} else if (strcmp(msg, "OK") == 0){
 				//received = 9
+				memset(msg, 0, sizeof(msg));
+				strcpy(msg, &buffer[pch-buffer+1]);
+				printf("Size: %s", msg);
 				int len = strlen(buffer);
 				//Remove '\n' char if any from name of file from fgets
 				if (len > 0 && buffer[len-1] == '\n')
