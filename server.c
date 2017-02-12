@@ -157,7 +157,7 @@ int main(int argc, char *argv[]) {
 			strcpy(tcp_buff, &msg[ptr-msg+1]);	
 			tcp_port = atoi(tcp_buff);
 			 
-			printf("File name: %s", buffer);
+			printf("File name: %s\n", buffer);
 			printf("Tcp Port: %d\n", tcp_port);
 
 			
@@ -239,10 +239,11 @@ int main(int argc, char *argv[]) {
 				} else {
 					ptr = malloc(1);
 					n = 0;
+					sent = 0;
 					
 
 					//write the file to socket
-					while ( sent <= f_len)
+					while ( sent < f_len)
 					{
 						fread(ptr, 1, 1, fp);
 						if( feof(fp) ){ 
@@ -256,7 +257,7 @@ int main(int argc, char *argv[]) {
 						}
 					}
 
-					printf("Closed File");
+					printf("Closed File\n");
 					//  Close the connected socket 
 
 					if ( close(conn_s) < 0 ) {
