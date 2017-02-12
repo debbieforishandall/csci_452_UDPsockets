@@ -153,13 +153,14 @@ int main(int argc, char *argv[]) {
 			tcp_port = atoi(tcp_buff);
 			 
 			printf("File name: %s", buffer);
-			printf("Tcp Port: %d", tcp_port);
+			printf("Tcp Port: %d\n", tcp_port);
 			
 			//Open file
 			fp = fopen(buffer,"r");
 
 			if(fp == NULL){
 				//File not found
+				printf("File not foune\n");
 				memset(msg, 0, sizeof(msg));
 				strcpy(msg, "NOT FOUND");
 				strcat(msg, "\n");
