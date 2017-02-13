@@ -22,8 +22,7 @@ ssize_t Readline(int, void *, size_t);
 ssize_t Writeline(int, const void *, size_t);
 
 int main(int argc, char *argv[]) {
-    int       list_s;                /*  listening socket          */
-	int 	  tcp_list_s;			 /*  tcp listening socket 	   */
+    int       list_s;                /*  udp socket          		*/
     int       conn_s;                /*  connection socket         */
     short int port;                  /*  port number               */
     struct    sockaddr_in servaddr;  /*  socket address structure  */
@@ -85,34 +84,9 @@ int main(int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
     }
 
-	/*  Set all bytes in tcp socket address structure to
-	zero, and fill in the relevant data members   */
-
-	memset(&si_tcp, 0, sizeof(si_tcp));
-	si_tcp.sin_family      = AF_INET;
-	si_tcp.sin_addr.s_addr = htonl(INADDR_ANY);
-	si_tcp.sin_port        = htons(tcp_port);
-
-	/*  Bind our socket addresss to the 
-		listening socket, and call listen()  */
-
-
-	/*  Create the tcp listening socket  */
-
-	tcp_list_s = socket(AF_INET, SOCK_STREAM, 0);
-	if (tcp_list_s < 0) {
-		fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
-		exit(EXIT_FAILURE);
-	}
-
-	if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
-		fprintf(stderr, "ECHOSERV: Error calling bind()\n");
-		printf("ERRNO value: %s", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
-	if ( listen(tcp_list_s, LISTENQ) < 0 ) {
-		fprintf(stderr, "ECHOSERV: Error calling listen()\n");
+	//create socket for possible tcp request
+	if ( (conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+		fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -230,40 +204,48 @@ int main(int argc, char *argv[]) {
 					exit(EXIT_FAILURE);
 				}
 				
+				/*  Set all bytes in socket address structure to
+					zero, and fill in the relevant data members   */
 
-				if ( (conn_s = accept(tcp_list_s, NULL, NULL) ) < 0 ) {
-					fprintf(stderr, "ECHOSERV: Error calling accept()\n");
+				memset(&si_tcp, 0, sizeof(si_tcp));
+				si_tcp.sin_family      = AF_INET;
+				si_tcp.sin_addr.s_addr = si_other.sin_addr.s_addr;
+				si_tcp.sin_port        = htons(tcp_port);
+
+				if ( (connect(conn_s, (struct sockaddr *) &si_other, sizeof(si_other) )) < 0 ) {
+					printf("SERV: Error calling connect()\n");
+					printf("SERV: Errno value %s\n", strerror(errno));
 					exit(EXIT_FAILURE);
-				} else {
-					ptr = malloc(1);
-					n = 0;
-					sent = 0;
-					
+				}
+				ptr = malloc(1);
+				n = 0;
+				sent = 0;
+				
 
-					//write the file to socket
-					while ( sent < f_len)
-					{
-						fread(ptr, 1, 1, fp);
-						if( feof(fp) ){ 
-							break ;
-						}
-						n = write(conn_s, ptr, 1);
-						if(n > 0){
-							//printf(ptr);
-							sent+= n;
-							//printf("Sent %d so far\n", sent);
-						}
+				//write the file to socket
+				while ( sent < f_len)
+				{
+					fread(ptr, 1, 1, fp);
+					if( feof(fp) ){ 
+						break ;
 					}
-					printf("Sent %d \n", sent);
-
-					printf("Closed File\n");
-					//  SHut down the connected socket 
-
-					if ( close(conn_s) < 0 ) {
-						fprintf(stderr, "SERV: Error calling close()\n");
-						exit(EXIT_FAILURE);
+					n = write(conn_s, ptr, 1);
+					if(n > 0){
+						//printf(ptr);
+						sent+= n;
+						//printf("Sent %d so far\n", sent);
 					}
 				}
+				printf("Sent %d \n", sent);
+
+				printf("Closed File\n");
+				//  SHut down the connected socket 
+
+				if ( close(conn_s) < 0 ) {
+					fprintf(stderr, "SERV: Error calling close()\n");
+					exit(EXIT_FAILURE);
+				}
+				
 			} 
 		}
 		else if(strcmp(msg_type, "QUIT\n") == 0)
