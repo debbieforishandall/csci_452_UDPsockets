@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
 
     int			conn_s;                 /*  connection socket         */
 	int 		tcp_conn_s;				/*  tcp connection socket     */
+	int 	  	tcp_list_s;			 	/*  tcp listening socket 	   */
     int 		portno;                 /*  tcp listening port number */
     int         serverPort;				/*	server UDP port number	  */
     struct		sockaddr_in servaddr;   /*  socket address structure  */
@@ -87,13 +88,7 @@ int main(int argc, char *argv[]) {
 
 	/*  Create the tcp listening socket  */
 
-	if ( (tcp_conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
-		fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
-		exit(EXIT_FAILURE);
-	}
-
-
-	/*  Set all bytes in socket address structure to
+	/*  Set all bytes in tcp socket address structure to
 		zero, and fill in the relevant data members   */
 
 	bzero((char *) &tcp_addr, sizeof(tcp_addr));
@@ -104,7 +99,31 @@ int main(int argc, char *argv[]) {
 		server addr structure      */
 	bcopy((char *)server->h_addr, (char *)&tcp_addr.sin_addr.s_addr, server->h_length);
 
-   
+	/*  Bind our socket addresss to the 
+		listening socket, and call listen()  */
+
+
+	/*  Create the tcp listening socket  */
+
+	tcp_list_s = socket(AF_INET, SOCK_STREAM, 0);
+	if (tcp_list_s < 0) {
+		fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if ( bind(tcp_list_s, (struct sockaddr *) &tcp_addr, sizeof(tcp_addr)) < 0 ) {
+		fprintf(stderr, "ECHOSERV: Error calling bind()\n");
+		printf("ERRNO value: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	if ( listen(tcp_list_s, LISTENQ) < 0 ) {
+		fprintf(stderr, "ECHOSERV: Error calling listen()\n");
+		exit(EXIT_FAILURE);
+	}
+
+
+    //loop for user entry
     do{
 		memset(user_entry, 0, sizeof(user_entry));
 		
@@ -225,10 +244,10 @@ int main(int argc, char *argv[]) {
 				strcpy(msg, &buffer[pch-buffer]);
 				printf("Size: %s", msg);
 				 
-				/*  connect() to the remote echo server  */
+				/*  check if accept connect to the remote echo server  */
 
-				if ( connect(tcp_conn_s, (struct sockaddr *) &tcp_addr, sizeof(tcp_addr) ) < 0 ) {
-					printf("ECHOCLNT: Error calling connect()\n");
+				if ( (tcp_conn_s = accept(tcp_list_s, NULL, NULL) ) < 0 ) {
+					fprintf(stderr, "ECHOSERV: Error calling accept()\n");
 					exit(EXIT_FAILURE);
 				}
 
