@@ -225,6 +225,7 @@ int main(int argc, char *argv[]) {
 
 				if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
 					fprintf(stderr, "ECHOSERV: Error calling bind()\n");
+					printf("ERRNO value: %d", ERRNO);
 					exit(EXIT_FAILURE);
 				}
 
@@ -258,19 +259,15 @@ int main(int argc, char *argv[]) {
 					}
 
 					printf("Closed File\n");
-					//  Close the connected socket 
+					//  SHut down the connected socket 
 
 					if ( close(conn_s) < 0 ) {
-						fprintf(stderr, "ECHOSERV: Error calling close()\n");
+						fprintf(stderr, "SERV: Error calling close()\n");
 						exit(EXIT_FAILURE);
 					}
 				}
 			} 
 		}
-		else if(strcmp(buffer, "QUIT") == 0)
-		{
-			memset(buffer, 0, sizeof(buffer));
-		} 
 		else 
 		{
 			//Writeline(conn_s, "Oops, An error occured", 23);
