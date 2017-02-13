@@ -261,6 +261,7 @@ int main(int argc, char *argv[]) {
 				}
 				
 				fclose(fp);
+				close(tcp_conn_s);
 				printf("Received: %d\n", received);
 			}
 			//fflush(stdin);
