@@ -85,16 +85,20 @@ int main(int argc, char *argv[]) {
     }
 
 	//create socket for possible tcp request
-	if ( (conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+	/*if ( (conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
 		fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
 		exit(EXIT_FAILURE);
-	}
+	}*/
 
     /*  Enter an infinite loop to respond
         to client requests  */
 
     while ( 1 ) {
 
+		if ( (conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+			fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
+			exit(EXIT_FAILURE);
+		}
 		i = 0;
 		// Retrieve first line from the connected socket
 		memset(buffer,0, sizeof(buffer));
