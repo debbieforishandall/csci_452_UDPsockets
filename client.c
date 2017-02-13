@@ -93,7 +93,7 @@ int main(int argc, char *argv[]) {
 		printf("Enter 'q' to quit.\n");
 		scanf("%s", user_entry);
 		//fflush(stdin);
-		printf("user_entry:  |%s|", user_entry);
+		//printf("user_entry:  |%s|", user_entry);
 		getchar();
 		if(!(strcmp(user_entry, "s")) || !(strcmp(user_entry, "s\n")))
 		{
@@ -275,9 +275,9 @@ int main(int argc, char *argv[]) {
 	while(strcmp(user_entry, "q") );
     
 	memset(msg, 0, sizeof(msg));
-	strcpy(msg, "QUIT\n");
+	/*strcpy(msg, "QUIT\n");
 	strcat(msg, "exiting socket\n");
-	sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
+	sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));*/
 
     return EXIT_SUCCESS;
 }
