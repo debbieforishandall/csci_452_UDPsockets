@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
 				/*  Bind our socket addresss to the 
 					listening socket, and call listen()  */
 
-				//int yes = 1;
+				int yes = 1;
 				/*  Create the listening socket  */
 
 				tcp_list_s = socket(AF_INET, SOCK_STREAM, 0);
@@ -218,10 +218,10 @@ int main(int argc, char *argv[]) {
 					exit(EXIT_FAILURE);
 				}
 
-				/*if (setsockopt(tcp_list_s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
+				if (setsockopt(tcp_list_s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
 					perror("setsockopt");
 					exit(1);
-				}*/
+				}
 
 				if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
 					fprintf(stderr, "ECHOSERV: Error calling bind()\n");
@@ -252,11 +252,12 @@ int main(int argc, char *argv[]) {
 						}
 						n = write(conn_s, ptr, 1);
 						if(n > 0){
-							printf(ptr);
+							//printf(ptr);
 							sent+= n;
-							printf("Sent %d so far\n", sent);
+							//printf("Sent %d so far\n", sent);
 						}
 					}
+					printf("Sent %d \n", sent);
 
 					printf("Closed File\n");
 					//  SHut down the connected socket 
