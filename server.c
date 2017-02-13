@@ -209,10 +209,10 @@ int main(int argc, char *argv[]) {
 
 				memset(&si_tcp, 0, sizeof(si_tcp));
 				si_tcp.sin_family      = AF_INET;
-				si_tcp.sin_addr.s_addr = htonl(INADDR_ANY);
+				si_tcp.sin_addr.s_addr = htonl(si_other);
 				si_tcp.sin_port        = htons(tcp_port);
 
-				if ( (connect(conn_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp) )) < 0 ) {
+				if ( (connect(conn_s, (struct sockaddr *) &si_other, sizeof(si_other) )) < 0 ) {
 					printf("SERV: Error calling connect()\n");
 					printf("SERV: Errno value %s\n", strerror(errno));
 					exit(EXIT_FAILURE);
