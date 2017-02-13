@@ -225,7 +225,7 @@ int main(int argc, char *argv[]) {
 
 				if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
 					fprintf(stderr, "ECHOSERV: Error calling bind()\n");
-					printf("ERRNO value: %d", ERRNO);
+					printf("ERRNO value: %s", strerror(errno));
 					exit(EXIT_FAILURE);
 				}
 
