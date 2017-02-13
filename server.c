@@ -78,15 +78,46 @@ int main(int argc, char *argv[]) {
 
 
     /*  Bind our socket addresss to the 
-	listening socket, and call listen()  */
+	udp socket  */
 
     if (  bind(list_s , (struct sockaddr*)&servaddr, sizeof(servaddr) ) == -1){
 		fprintf(stderr, "ECHOSERV: Error calling bind()\n");
 		exit(EXIT_FAILURE);
     }
 
+	/*  Set all bytes in tcp socket address structure to
+	zero, and fill in the relevant data members   */
+
+	memset(&si_tcp, 0, sizeof(si_tcp));
+	si_tcp.sin_family      = AF_INET;
+	si_tcp.sin_addr.s_addr = htonl(INADDR_ANY);
+	si_tcp.sin_port        = htons(tcp_port);
+
+	/*  Bind our socket addresss to the 
+		listening socket, and call listen()  */
+
+
+	/*  Create the tcp listening socket  */
+
+	tcp_list_s = socket(AF_INET, SOCK_STREAM, 0);
+	if (tcp_list_s < 0) {
+		fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
+		fprintf(stderr, "ECHOSERV: Error calling bind()\n");
+		printf("ERRNO value: %s", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	if ( listen(tcp_list_s, LISTENQ) < 0 ) {
+		fprintf(stderr, "ECHOSERV: Error calling listen()\n");
+		exit(EXIT_FAILURE);
+	}
+
     /*  Enter an infinite loop to respond
-        to client requests and echo input  */
+        to client requests  */
 
     while ( 1 ) {
 
@@ -198,41 +229,7 @@ int main(int argc, char *argv[]) {
 				{
 					exit(EXIT_FAILURE);
 				}
-				/*  Set all bytes in socket address structure to
-				zero, and fill in the relevant data members   */
-
-				memset(&si_tcp, 0, sizeof(si_tcp));
-				si_tcp.sin_family      = AF_INET;
-				si_tcp.sin_addr.s_addr = htonl(INADDR_ANY);
-				si_tcp.sin_port        = htons(tcp_port);
-
-				/*  Bind our socket addresss to the 
-					listening socket, and call listen()  */
-
-				//int yes = 1;
-				/*  Create the listening socket  */
-
-				tcp_list_s = socket(AF_INET, SOCK_STREAM, 0);
-				if (tcp_list_s < 0) {
-					fprintf(stderr, "ECHOSERV: Error creating listening socket.\n");
-					exit(EXIT_FAILURE);
-				}
-
-				/*if (setsockopt(tcp_list_s, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1) {
-					perror("setsockopt");
-					exit(1);
-				}*/
-
-				if ( bind(tcp_list_s, (struct sockaddr *) &si_tcp, sizeof(si_tcp)) < 0 ) {
-					fprintf(stderr, "ECHOSERV: Error calling bind()\n");
-					printf("ERRNO value: %s", strerror(errno));
-					exit(EXIT_FAILURE);
-				}
-
-				if ( listen(tcp_list_s, LISTENQ) < 0 ) {
-					fprintf(stderr, "ECHOSERV: Error calling listen()\n");
-					exit(EXIT_FAILURE);
-				}
+				
 
 				if ( (conn_s = accept(tcp_list_s, NULL, NULL) ) < 0 ) {
 					fprintf(stderr, "ECHOSERV: Error calling accept()\n");
