@@ -254,14 +254,14 @@ int main(int argc, char *argv[]) {
 					if(n > 0)
 				    {
 						fwrite(&c, 1, 1, fp);
-						printf(&c);
+						//printf(&c);
 						received += n;
-						printf("received %d so far \n", received);
+						//printf("received %d so far \n", received);
 					} 
 				}
 				
 				fclose(fp);
-				printf("Received: %d", received);
+				printf("Received: %d\n", received);
 			}
 			//fflush(stdin);
 			//free(ptr);
@@ -274,7 +274,10 @@ int main(int argc, char *argv[]) {
     } 
 	while(strcmp(user_entry, "q") );
     
-	//Writeline(conn_s, "QUIT", 5);
+	memset(msg, 0, sizeof(msg));
+	strcpy(msg, "QUIT\n");
+	sstrcat(msg, "exiting socket\n");
+	sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 
     return EXIT_SUCCESS;
 }
