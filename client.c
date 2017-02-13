@@ -81,9 +81,29 @@ int main(int argc, char *argv[]) {
 
     /*  Byte copy the address retrieved from server  into the
         server addr structure      */
-     bcopy((char *)server->h_addr, (char *)&servaddr.sin_addr.s_addr, server->h_length);
+    bcopy((char *)server->h_addr, (char *)&servaddr.sin_addr.s_addr, server->h_length);
 
 	slen = sizeof(servaddr);
+
+	/*  Create the tcp listening socket  */
+
+	if ( (tcp_conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
+		fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
+		exit(EXIT_FAILURE);
+	}
+
+
+	/*  Set all bytes in socket address structure to
+		zero, and fill in the relevant data members   */
+
+	bzero((char *) &tcp_addr, sizeof(tcp_addr));
+	tcp_addr.sin_family      = AF_INET;
+	tcp_addr.sin_port        = htons(portno);
+
+	/*  Byte copy the address retrieved from server  into the
+		server addr structure      */
+	bcopy((char *)server->h_addr, (char *)&tcp_addr.sin_addr.s_addr, server->h_length);
+
    
     do{
 		memset(user_entry, 0, sizeof(user_entry));
@@ -204,39 +224,13 @@ int main(int argc, char *argv[]) {
 				memset(msg, 0, sizeof(msg));
 				strcpy(msg, &buffer[pch-buffer]);
 				printf("Size: %s", msg);
-				/*int len = strlen(msg);
-				//Remove '\n' char if any from name of file from fgets
-				if (len > 0 && msg[len-1] == '\n')
-				{
-					msg[len-1] = '\0';
-				}*/
-
-				 /*  Create the tcp listening socket  */
-
-				if ( (tcp_conn_s = socket(AF_INET, SOCK_STREAM, 0)) < 0 ) {
-					fprintf(stderr, "ECHOCLNT: Error creating listening socket.\n");
-					exit(EXIT_FAILURE);
-				}
-
-
-				/*  Set all bytes in socket address structure to
-					zero, and fill in the relevant data members   */
-
-				bzero((char *) &tcp_addr, sizeof(tcp_addr));
-				tcp_addr.sin_family      = AF_INET;
-				tcp_addr.sin_port        = htons(portno);
-
-				/*  Byte copy the address retrieved from server  into the
-					server addr structure      */
-				 bcopy((char *)server->h_addr, (char *)&tcp_addr.sin_addr.s_addr, server->h_length);
-		
+				 
 				/*  connect() to the remote echo server  */
 
 				if ( connect(tcp_conn_s, (struct sockaddr *) &tcp_addr, sizeof(tcp_addr) ) < 0 ) {
 					printf("ECHOCLNT: Error calling connect()\n");
 					exit(EXIT_FAILURE);
 				}
-
 
 				//Open a new file for writing
 				fp = fopen (f_name, "w+");
