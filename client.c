@@ -276,7 +276,7 @@ int main(int argc, char *argv[]) {
     
 	memset(msg, 0, sizeof(msg));
 	strcpy(msg, "QUIT\n");
-	sstrcat(msg, "exiting socket\n");
+	strcat(msg, "exiting socket\n");
 	sendto(conn_s, msg, strlen(msg), 0, (struct sockaddr *) &servaddr, sizeof(servaddr));
 
     return EXIT_SUCCESS;
