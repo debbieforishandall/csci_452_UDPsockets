@@ -12,6 +12,7 @@
 /*  Global constants  */
 
 #define MAX_LINE           (1000)
+#define LISTENQ            (1024)   /*  Backlog for listen()   */
 
 ssize_t Readline(int, void *, size_t);
 ssize_t Writeline(int, const void *, size_t);
