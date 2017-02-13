@@ -229,6 +229,7 @@ int main(int argc, char *argv[]) {
 
 				if ( connect(tcp_conn_s, (struct sockaddr *) &tcp_addr, sizeof(tcp_addr) ) < 0 ) {
 					printf("ECHOCLNT: Error calling connect()\n");
+					printf("CLIENT: Errno value %s\n", strerror(errno));
 					exit(EXIT_FAILURE);
 				}
 
