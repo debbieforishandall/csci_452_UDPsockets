@@ -269,9 +269,10 @@ int main(int argc, char *argv[]) {
 				}
 			} 
 		}
-		else 
+		else if(strcmp(msg_type, "QUIT\n") == 0)
 		{
 			//Writeline(conn_s, "Oops, An error occured", 23);
+			close(list_s);
 		}
 	}
 	
